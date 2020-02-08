@@ -1,0 +1,3 @@
+C:\Users\tsol3y\Spring_2020\Networking\Project1\obj\Debug\netcoreapp3.0\Server.csprojAssemblyReference.cache
+C:\Users\tsol3y\Spring_2020\Networking\Project1\obj\Debug\netcoreapp3.0\Server.AssemblyInfoInputs.cache
+C:\Users\tsol3y\Spring_2020\Networking\Project1\obj\Debug\netcoreapp3.0\Server.AssemblyInfo.cs

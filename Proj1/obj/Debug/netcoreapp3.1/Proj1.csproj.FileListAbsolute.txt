@@ -1,0 +1,11 @@
+C:\Users\tsol3y\Spring_2020\Networking\Project1\Proj1\bin\Debug\netcoreapp3.1\Proj1.exe
+C:\Users\tsol3y\Spring_2020\Networking\Project1\Proj1\bin\Debug\netcoreapp3.1\Proj1.deps.json
+C:\Users\tsol3y\Spring_2020\Networking\Project1\Proj1\bin\Debug\netcoreapp3.1\Proj1.runtimeconfig.json
+C:\Users\tsol3y\Spring_2020\Networking\Project1\Proj1\bin\Debug\netcoreapp3.1\Proj1.runtimeconfig.dev.json
+C:\Users\tsol3y\Spring_2020\Networking\Project1\Proj1\bin\Debug\netcoreapp3.1\Proj1.dll
+C:\Users\tsol3y\Spring_2020\Networking\Project1\Proj1\bin\Debug\netcoreapp3.1\Proj1.pdb
+C:\Users\tsol3y\Spring_2020\Networking\Project1\Proj1\obj\Debug\netcoreapp3.1\Proj1.csprojAssemblyReference.cache
+C:\Users\tsol3y\Spring_2020\Networking\Project1\Proj1\obj\Debug\netcoreapp3.1\Proj1.AssemblyInfoInputs.cache
+C:\Users\tsol3y\Spring_2020\Networking\Project1\Proj1\obj\Debug\netcoreapp3.1\Proj1.AssemblyInfo.cs
+C:\Users\tsol3y\Spring_2020\Networking\Project1\Proj1\obj\Debug\netcoreapp3.1\Proj1.dll
+C:\Users\tsol3y\Spring_2020\Networking\Project1\Proj1\obj\Debug\netcoreapp3.1\Proj1.pdb
