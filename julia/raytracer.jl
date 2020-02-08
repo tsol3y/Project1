@@ -1,10 +1,9 @@
 # Based on https://blogs.msdn.microsoft.com/lukeh/2007/04/03/a-ray-tracer-in-c3-0/
 using LinearAlgebra
 
-background = [0,0,0]
-defaultColor = [0,0,0]
-
 toByte = x -> trunc(UInt8, min(255, x*255))
+
+newline here
 
 struct Ray
     start::Array{Float64,1}
