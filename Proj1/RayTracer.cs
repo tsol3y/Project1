@@ -94,7 +94,7 @@ namespace RayTracer {
                                                                        Vector.Times(RecenterY(y), camera.Up))));
         }
 
-        internal void Render(Scene scene) {
+        internal void oldRender(Scene scene) {//add two coordinates as inputs
             /* instead of using Render here, which does the entire scene at once, our server will 
                do one pixel at a time, since that is what it is going to be sending back to the
                client */
@@ -107,6 +107,24 @@ namespace RayTracer {
                     setPixel(x, y, color);
                 }
             }
+        }
+
+
+
+        internal byte[] Render(Scene scene, int x, int y) {//add two coordinates as inputs
+            /* instead of using Render here, which does the entire scene at once, our server will 
+               do one pixel at a time, since that is what it is going to be sending back to the
+               client */
+            Color color = TraceRay(new Ray() { Start = scene.Camera.Pos, Dir = GetPoint(x, y, scene.Camera) }, scene, 0);
+            byte[] returnBytes = new byte[11];
+            returnBytes[0] = RayTracerApp.ToByte(color.R); //tobytes
+            returnBytes[1] = RayTracerApp.ToByte(color.G);
+            returnBytes[2] = RayTracerApp.ToByte(color.B); //tobytes
+            // ReturnBytes[..] = Offset X & Y
+            //string returnString = string.Format(formatString, x.ToString(), y.ToString(), color.R.ToString(), color.G.ToString(), color.B.ToString());
+            //return returnString;
+            // we will probably want to return something here instead of calling the setPixel action
+            
         }
 
         static double? OptParse(string s)
@@ -466,7 +484,7 @@ namespace RayTracer {
 
     public class RayTracerApp
     {
-        public static void RunDemo()
+        /*public static void RunDemo()
         {
             var width = 400;
             var height = 400;
@@ -492,7 +510,7 @@ namespace RayTracer {
             rayTracer.Render(vs.Item2);
 
             WritePPM(outputFile, bitmap);
-        }
+        }*/
 
         public static void WritePPM(String fileName, Color[,] bitmap)
         {
@@ -514,9 +532,9 @@ namespace RayTracer {
             }
         }
         
-        static int ToByte(double x)
+        public static byte ToByte(double x)
         {
-            return Math.Min(255, (int)(x * 255));
+            return (byte)Math.Min(255, (int)(x * 255));
         }
     }
 }
