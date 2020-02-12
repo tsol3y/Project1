@@ -5,6 +5,7 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Buffers.Binary; // we added
 
 namespace RayTracer {
     public class RayTracer {
@@ -117,9 +118,14 @@ namespace RayTracer {
                client */
             Color color = TraceRay(new Ray() { Start = scene.Camera.Pos, Dir = GetPoint(x, y, scene.Camera) }, scene, 0);
             byte[] returnBytes = new byte[11];
+            
             returnBytes[0] = RayTracerApp.ToByte(color.R); //tobytes
             returnBytes[1] = RayTracerApp.ToByte(color.G);
             returnBytes[2] = RayTracerApp.ToByte(color.B); //tobytes
+            var byteSpan = new Span<byte>(returnBytes);
+            BinaryPrimitives.WriteInt32BigEndian(byteSpan.Slice(3,4), x);
+            BinaryPrimitives.WriteInt32BigEndian(byteSpan.Slice(7,4), y);
+            return returnBytes;
             // ReturnBytes[..] = Offset X & Y
             //string returnString = string.Format(formatString, x.ToString(), y.ToString(), color.R.ToString(), color.G.ToString(), color.B.ToString());
             //return returnString;
@@ -536,5 +542,11 @@ namespace RayTracer {
         {
             return (byte)Math.Min(255, (int)(x * 255));
         }
+
+        public static byte ToByte(int x)
+        {
+            return (byte) Math.Min(4294967295, (int)(x * 4294967295));
+        }
+        //we created this
     }
 }

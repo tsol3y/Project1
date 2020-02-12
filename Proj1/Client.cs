@@ -3,11 +3,21 @@ using System;
 using System.Net.Sockets;
 using System.Net;
 using System.Text;
+using System.Buffers.Binary;
 
 namespace Client {
     class Program {
         static void Main(string[] args) {
-            var utf8 = new UTF8Encoding();
+
+            var testInt = 1024;
+            byte[] returnBytes = new byte[11];
+            var byteSpan = new Span<byte>(returnBytes);
+            BinaryPrimitives.WriteInt32BigEndian(byteSpan.Slice(3,4), testInt);
+            
+            var testResult = BinaryPrimitives.ReadInt32BigEndian(byteSpan.Slice(3, 4));
+            Console.WriteLine(testResult);
+
+            /*var utf8 = new UTF8Encoding();
             UdpClient c = new UdpClient(3333);
 
             var startMsg = Console.ReadLine();
@@ -17,7 +27,7 @@ namespace Client {
             c.Send(bytes, startMsg.Length, ip);
             var receivedBytes = c.Receive(ref ip);
             
-            RayTracer.RayTracerApp.WritePPM("test", bitmap);
+            RayTracer.RayTracerApp.WritePPM("test", bitmap);*/
         }
     }
 }

@@ -7,7 +7,7 @@ namespace Server
 {
     class Program
     {
-        async static Task Main(string[] args)
+        /*async static Task Main(string[] args)
         {
             var sock = new UdpClient(9001);
             var t = sock.ReceiveAsync();
@@ -35,6 +35,6 @@ namespace Server
                         break;
                 }
             }
-        }
+        }*/
     }
 }

@@ -9,3 +9,14 @@ C:\Users\tsol3y\Spring_2020\Networking\Project1\Proj1\obj\Debug\netcoreapp3.1\Pr
 C:\Users\tsol3y\Spring_2020\Networking\Project1\Proj1\obj\Debug\netcoreapp3.1\Proj1.AssemblyInfo.cs
 C:\Users\tsol3y\Spring_2020\Networking\Project1\Proj1\obj\Debug\netcoreapp3.1\Proj1.dll
 C:\Users\tsol3y\Spring_2020\Networking\Project1\Proj1\obj\Debug\netcoreapp3.1\Proj1.pdb
+C:\Users\Rachael Rogan\Desktop\Networking\Project 1 Git Hub\Proj1\bin\Debug\netcoreapp3.1\Proj1.exe
+C:\Users\Rachael Rogan\Desktop\Networking\Project 1 Git Hub\Proj1\bin\Debug\netcoreapp3.1\Proj1.deps.json
+C:\Users\Rachael Rogan\Desktop\Networking\Project 1 Git Hub\Proj1\bin\Debug\netcoreapp3.1\Proj1.runtimeconfig.json
+C:\Users\Rachael Rogan\Desktop\Networking\Project 1 Git Hub\Proj1\bin\Debug\netcoreapp3.1\Proj1.runtimeconfig.dev.json
+C:\Users\Rachael Rogan\Desktop\Networking\Project 1 Git Hub\Proj1\bin\Debug\netcoreapp3.1\Proj1.dll
+C:\Users\Rachael Rogan\Desktop\Networking\Project 1 Git Hub\Proj1\bin\Debug\netcoreapp3.1\Proj1.pdb
+C:\Users\Rachael Rogan\Desktop\Networking\Project 1 Git Hub\Proj1\obj\Debug\netcoreapp3.1\Proj1.csprojAssemblyReference.cache
+C:\Users\Rachael Rogan\Desktop\Networking\Project 1 Git Hub\Proj1\obj\Debug\netcoreapp3.1\Proj1.AssemblyInfoInputs.cache
+C:\Users\Rachael Rogan\Desktop\Networking\Project 1 Git Hub\Proj1\obj\Debug\netcoreapp3.1\Proj1.AssemblyInfo.cs
+C:\Users\Rachael Rogan\Desktop\Networking\Project 1 Git Hub\Proj1\obj\Debug\netcoreapp3.1\Proj1.dll
+C:\Users\Rachael Rogan\Desktop\Networking\Project 1 Git Hub\Proj1\obj\Debug\netcoreapp3.1\Proj1.pdb
