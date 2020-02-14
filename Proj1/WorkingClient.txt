@@ -8,53 +8,24 @@ using System.IO;
 
 namespace Client {
     class Program {
-        static void Main(string[] args) {//needs to be able to take a scene file input
-            // Read the file and display it line by line.  
-            int counter = 0;
-            // File file = new File(@"default.scene");
-            long fileLength = new FileInfo(@"default.scene").Length;
-            StreamReader sReader = new StreamReader(@"default.scene");
-
-            // for (int i = 0; i < fileLength; i++) {
-            //     stringArray[i] = sReader.ReadLine();
-            //     Console.WriteLine(stringArray[i]);
-            // }
-
-           while((line = file.ReadLine()) != null) {  
-                //System.Console.WriteLine(line); 
-                counter++;  
+        static void Main(string[] args) {
+            string inputFile = "default.scene";
+            string outputFile = "testOutput.ppm";           
+            var vs = RayTracer.RayTracer.ReadScene(inputFile);
+            var view = vs.Item1;
+            var width = view.Item1;
+            var height = view.Item2;
+            
+            RayTracer.RayTracer rayTracer = new RayTracer.RayTracer(width, height);
+            byte[,,] bitmap = new byte[width, height, 3];
+            
+            for(int x = 0; x < width; x++) {
+                for(int y = 0; y < height; y++) {
+                    updateBitMap(rayTracer.Render(vs.Item2, x, y), bitmap);
+                }
             }
-            var stringArray = new string[fileLength];
-            
-            sReader.Close();  
-            System.Console.WriteLine("There were {0} lines.", fileLength);  
-            // for(int i = 0; i < fileLength; i++){
-            //     Console.WriteLine(stringArray[i]);
-            // }
-
-
-
-
-
-            // THESE LINES TEST RENDERING FROM A SCENE, THEY WILL
-            // BE USED IN THE FINAL CLIENT
-            // string inputFile = "default.scene";
-            // string outputFile = "testOutput.ppm";           
-            // var vs = RayTracer.RayTracer.ReadScene(inputFile);
-            // var view = vs.Item1;
-            // var width = view.Item1;
-            // var height = view.Item2;
-            
-            // RayTracer.RayTracer rayTracer = new RayTracer.RayTracer(width, height);
-            // byte[,,] bitmap = new byte[width, height, 3];
-            
-            // for(int x = 0; x < width; x++) {
-            //     for(int y = 0; y < height; y++) {
-            //         updateBitMap(rayTracer.Render(vs.Item2, x, y), bitmap);
-            //     }
-            // }
-            // WritePPM(outputFile, bitmap);
-        /////////////////////////////////////////////////////
+            WritePPM(outputFile, bitmap);
+        
 
 
 

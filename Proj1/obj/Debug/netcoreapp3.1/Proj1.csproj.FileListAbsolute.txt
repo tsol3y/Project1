@@ -20,3 +20,14 @@ C:\Users\Rachael Rogan\Desktop\Networking\Project 1 Git Hub\Proj1\obj\Debug\netc
 C:\Users\Rachael Rogan\Desktop\Networking\Project 1 Git Hub\Proj1\obj\Debug\netcoreapp3.1\Proj1.AssemblyInfo.cs
 C:\Users\Rachael Rogan\Desktop\Networking\Project 1 Git Hub\Proj1\obj\Debug\netcoreapp3.1\Proj1.dll
 C:\Users\Rachael Rogan\Desktop\Networking\Project 1 Git Hub\Proj1\obj\Debug\netcoreapp3.1\Proj1.pdb
+C:\Users\Benjamin\Documents\GitHub\Project1\Proj1\bin\Debug\netcoreapp3.1\Proj1.exe
+C:\Users\Benjamin\Documents\GitHub\Project1\Proj1\bin\Debug\netcoreapp3.1\Proj1.deps.json
+C:\Users\Benjamin\Documents\GitHub\Project1\Proj1\bin\Debug\netcoreapp3.1\Proj1.runtimeconfig.json
+C:\Users\Benjamin\Documents\GitHub\Project1\Proj1\bin\Debug\netcoreapp3.1\Proj1.runtimeconfig.dev.json
+C:\Users\Benjamin\Documents\GitHub\Project1\Proj1\bin\Debug\netcoreapp3.1\Proj1.dll
+C:\Users\Benjamin\Documents\GitHub\Project1\Proj1\bin\Debug\netcoreapp3.1\Proj1.pdb
+C:\Users\Benjamin\Documents\GitHub\Project1\Proj1\obj\Debug\netcoreapp3.1\Proj1.csprojAssemblyReference.cache
+C:\Users\Benjamin\Documents\GitHub\Project1\Proj1\obj\Debug\netcoreapp3.1\Proj1.AssemblyInfoInputs.cache
+C:\Users\Benjamin\Documents\GitHub\Project1\Proj1\obj\Debug\netcoreapp3.1\Proj1.AssemblyInfo.cs
+C:\Users\Benjamin\Documents\GitHub\Project1\Proj1\obj\Debug\netcoreapp3.1\Proj1.dll
+C:\Users\Benjamin\Documents\GitHub\Project1\Proj1\obj\Debug\netcoreapp3.1\Proj1.pdb

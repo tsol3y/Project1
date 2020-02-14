@@ -14,13 +14,16 @@ namespace RayTracer {
         private int screenHeight;
         private const int MaxDepth = 5;
 
-        public RayTracer(int screenWidth, int screenHeight) {
+        public Action<int, int, Color> setPixel;
+
+        public RayTracer(int screenWidth, int screenHeight, Action<int,int, Color> setPixel) {
             this.screenWidth = screenWidth;
             this.screenHeight = screenHeight;
+            this.setPixel = setPixel;
         }
 
         private IEnumerable<ISect> Intersections(Ray ray, Scene scene)
-        { 
+        {
             return scene.Things
                         .Select(obj => obj.Intersect(ray))
                         .Where(inter => inter != null)
@@ -91,6 +94,23 @@ namespace RayTracer {
             return Vector.Norm(Vector.Plus(camera.Forward, Vector.Plus(Vector.Times(RecenterX(x), camera.Right),
                                                                        Vector.Times(RecenterY(y), camera.Up))));
         }
+
+        internal void oldRender(Scene scene) {//add two coordinates as inputs
+            /* instead of using Render here, which does the entire scene at once, our server will 
+               do one pixel at a time, since that is what it is going to be sending back to the
+               client */
+            for (int y = 0; y < screenHeight; y++)
+            {
+                for (int x = 0; x < screenWidth; x++)
+                {
+                    Color color = TraceRay(new Ray() { Start = scene.Camera.Pos, Dir = GetPoint(x, y, scene.Camera) }, scene, 0);
+                    // we will probably want to return something here instead of calling the setPixel action
+                    setPixel(x, y, color);
+                }
+            }
+        }
+
+
 
         internal byte[] Render(Scene scene, int x, int y) {//add two coordinates as inputs
             /* instead of using Render here, which does the entire scene at once, our server will 
@@ -469,7 +489,55 @@ namespace RayTracer {
     }
 
     public class RayTracerApp
-    {        
+    {
+        /*public static void RunDemo()
+        {
+            var width = 400;
+            var height = 400;
+            Color[,] bitmap = new Color[width, height];
+            RayTracer rayTracer = new RayTracer(width, height,
+                    (int x, int y, Color color) => { bitmap[x, y] = color; });
+
+            rayTracer.Render(rayTracer.DemoScene);
+
+            WritePPM("demo.ppm", bitmap);
+        }
+        public static void Run(string inputFile, string outputFile)
+        {            
+            var vs = RayTracer.ReadScene(inputFile);
+            var view = vs.Item1;
+            var width = view.Item1;
+            var height = view.Item2;
+            
+            Color[,] bitmap = new Color[width, height];
+            RayTracer rayTracer = new RayTracer(width, height,
+                    (int x, int y, Color color) => { bitmap[x, y] = color; });
+
+            rayTracer.Render(vs.Item2);
+
+            WritePPM(outputFile, bitmap);
+        }*/
+
+        public static void WritePPM(String fileName, Color[,] bitmap)
+        {
+            var width = bitmap.GetLength(0);
+            var height = bitmap.GetLength(1);
+            var header = $"P3 {width} {height} 255\n";
+            using (var o = new StreamWriter(fileName))
+            {
+                o.WriteLine(header);
+                for (int y = 0; y < height; y++)
+                {
+                    for (int x = 0; x < width; x++)
+                    {
+                        Color c = bitmap[x,y];
+                        o.Write($"{ToByte(c.R)} {ToByte(c.G)} {ToByte(c.B)}  ");
+                    }
+                    o.WriteLine();
+                }
+            }
+        }
+        
         public static byte ToByte(double x)
         {
             return (byte)Math.Min(255, (int)(x * 255));

@@ -20,3 +20,14 @@ C:\Users\Rachael Rogan\Desktop\Networking\Project 1 Git Hub\csharp\obj\Debug\net
 C:\Users\Rachael Rogan\Desktop\Networking\Project 1 Git Hub\csharp\obj\Debug\netcoreapp3.0\RayTracer.AssemblyInfo.cs
 C:\Users\Rachael Rogan\Desktop\Networking\Project 1 Git Hub\csharp\obj\Debug\netcoreapp3.0\RayTracer.dll
 C:\Users\Rachael Rogan\Desktop\Networking\Project 1 Git Hub\csharp\obj\Debug\netcoreapp3.0\RayTracer.pdb
+C:\Users\Benjamin\Documents\GitHub\Project1\csharp\bin\Debug\netcoreapp3.0\RayTracer.exe
+C:\Users\Benjamin\Documents\GitHub\Project1\csharp\bin\Debug\netcoreapp3.0\RayTracer.deps.json
+C:\Users\Benjamin\Documents\GitHub\Project1\csharp\bin\Debug\netcoreapp3.0\RayTracer.runtimeconfig.json
+C:\Users\Benjamin\Documents\GitHub\Project1\csharp\bin\Debug\netcoreapp3.0\RayTracer.runtimeconfig.dev.json
+C:\Users\Benjamin\Documents\GitHub\Project1\csharp\bin\Debug\netcoreapp3.0\RayTracer.dll
+C:\Users\Benjamin\Documents\GitHub\Project1\csharp\bin\Debug\netcoreapp3.0\RayTracer.pdb
+C:\Users\Benjamin\Documents\GitHub\Project1\csharp\obj\Debug\netcoreapp3.0\RayTracer.csprojAssemblyReference.cache
+C:\Users\Benjamin\Documents\GitHub\Project1\csharp\obj\Debug\netcoreapp3.0\RayTracer.AssemblyInfoInputs.cache
+C:\Users\Benjamin\Documents\GitHub\Project1\csharp\obj\Debug\netcoreapp3.0\RayTracer.AssemblyInfo.cs
+C:\Users\Benjamin\Documents\GitHub\Project1\csharp\obj\Debug\netcoreapp3.0\RayTracer.dll
+C:\Users\Benjamin\Documents\GitHub\Project1\csharp\obj\Debug\netcoreapp3.0\RayTracer.pdb
