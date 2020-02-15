@@ -5,29 +5,42 @@ using System.Net;
 using System.Text;
 using System.Buffers.Binary;
 using System.IO;
+using System.Collections.Generic;
 
 namespace Client {
     class Program {
         static void Main(string[] args) {//needs to be able to take a scene file input
             // Read the file and display it line by line.  
             int counter = 0;
+            string line;
+            List<List<string>> stringList = new List<List<string>>();
             // File file = new File(@"default.scene");
-            long fileLength = new FileInfo(@"default.scene").Length;
-            StreamReader sReader = new StreamReader(@"default.scene");
+            StreamReader file = new StreamReader(@"default.scene");
 
             // for (int i = 0; i < fileLength; i++) {
             //     stringArray[i] = sReader.ReadLine();
             //     Console.WriteLine(stringArray[i]);
             // }
 
-           while((line = file.ReadLine()) != null) {  
+           while((line = file.ReadLine()) != null) {
+                stringList.Add(new List<string>());
+                stringList[counter].Add((counter + 1).ToString());
+                stringList[counter].Add(line);
                 //System.Console.WriteLine(line); 
-                counter++;  
+                counter++;
             }
-            var stringArray = new string[fileLength];
+
+            file.Close();  
+
+            for (int i = 0; i < counter; i++) {
+                stringList[i].Insert(0, counter.ToString());
+            }
+
+            var stringArray = stringList.ToArray();
             
-            sReader.Close();  
-            System.Console.WriteLine("There were {0} lines.", fileLength);  
+            foreach (List<string> arrayLine in stringArray) {
+                System.Console.WriteLine("{0} / {1} {2}", arrayLine[1], arrayLine[0], arrayLine[2]);
+            }
             // for(int i = 0; i < fileLength; i++){
             //     Console.WriteLine(stringArray[i]);
             // }
