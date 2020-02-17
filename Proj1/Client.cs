@@ -6,10 +6,11 @@ using System.Text;
 using System.Buffers.Binary;
 using System.IO;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Client {
     class Program {
-        static void Main(String[] args) {//needs to be able to take a scene file input  
+        async static Task Main(String[] args) {//needs to be able to take a scene file input  
             // We need to figure out where we are getting the IP addresses and port numbers
             // 
             byte[][] sceneArray = GenerateSceneArray(args[0]);   // send this to the server first
@@ -17,11 +18,35 @@ namespace Client {
             UdpClient client = new UdpClient(3333); //there were specific instructions about what port to use
             
             IPEndPoint ip = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 3334);
-            foreach (byte [] encodedString in sceneArray) {
-                client.Send(encodedString, encodedString.Length, ip);
-            }
-            // IPEndPoint[] serverArray = 
+            // foreach (byte [] encodedString in sceneArray) {
+            //     client.Send(encodedString, encodedString.Length, ip);
+            // }
 
+            for (int i = 0; i < sceneArray.Length; i++) {
+                client.Send(sceneArray[i], sceneArray[i].Length, ip);
+            }
+            // Listen to send back whatever it's missing
+            var listener = client.ReceiveAsync();
+            var notFinished = true;
+            
+            while(notFinished) {
+                var action = Task.WaitAny(listener);
+                switch(action) {
+                    case 0:
+                        var serverResponse = await listener;
+                        var bufferedResponse = serverResponse.Buffer;
+                        if (bufferedResponse.Length == 4) {
+                            var missingLine = UnpackMissingLine(bufferedResponse);
+                            client.Send(sceneArray[missingLine], sceneArray[missingLine].Length, ip);
+                        }
+                        listener = client.ReceiveAsync();
+                        break;
+                    default:
+                        break;
+                }
+            }
+            // Console.WriteLine(BinaryPrimitives.ReadInt32BigEndian(client.Receive(ref ip)));
+            // IPEndPoint[] serverArray = 
             
             //var startMsg = Console.ReadLine();//sceneArray[i]
             // foreach (byte [] encodedString in sceneArray) {
@@ -39,7 +64,10 @@ namespace Client {
             //var m = utf8.GetString(data, 0, data.Length);//GetString turns the bytes into a string
 
         }
-
+        public static int UnpackMissingLine(byte[] lineNumber) {
+            var byteSpan = new Span <byte>(lineNumber);
+            return BinaryPrimitives.ReadInt32BigEndian(byteSpan.Slice(0, 4));
+        }
         static void UpdateBitMap(byte[] update, byte[,,] bitmapToEdit) {
             var byteSpan = new Span<byte>(update);
             var X = BinaryPrimitives.ReadInt32BigEndian(byteSpan.Slice(3, 4));
