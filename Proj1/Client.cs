@@ -10,15 +10,23 @@ using System.Collections.Generic;
 namespace Client {
     class Program {
         static void Main(String[] args) {//needs to be able to take a scene file input  
-            var sceneArray = GenerateSceneArray(args[0]);
-            var utf8 = new UTF8Encoding();
-            // UdpClient c = new UdpClient(3333); //there were specific instructions about what port to use
+            // We need to figure out where we are getting the IP addresses and port numbers
+            // 
+            byte[][] sceneArray = GenerateSceneArray(args[0]);   // send this to the server first
+            UTF8Encoding utf8 = new UTF8Encoding();
+            UdpClient client = new UdpClient(3333); //there were specific instructions about what port to use
+            
+            IPEndPoint ip = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 3334);
+            foreach (byte [] encodedString in sceneArray) {
+                client.Send(encodedString, encodedString.Length, ip);
+            }
+            // IPEndPoint[] serverArray = 
 
             
             //var startMsg = Console.ReadLine();//sceneArray[i]
-            foreach (byte [] encodedString in sceneArray) {
-                Console.WriteLine(utf8.GetString(encodedString, 0, encodedString.Length));
-            }
+            // foreach (byte [] encodedString in sceneArray) {
+                // Console.WriteLine(utf8.GetString(encodedString, 0, encodedString.Length));
+            // }
             // byte[] bytes = utf8.GetBytes(startMsg);
 
             // var ip = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 3334);
@@ -30,61 +38,6 @@ namespace Client {
                                    
             //var m = utf8.GetString(data, 0, data.Length);//GetString turns the bytes into a string
 
-            
-            // RayTracer.RayTracerApp.WritePPM("test", bitmap);
-
-            // foreach (List<string> arrayLine in stringArray) {
-            //     System.Console.WriteLine("{0}~{1}~{2}", arrayLine[1], arrayLine[0], arrayLine[2]);
-            // }
-
-            // THESE LINES TEST RENDERING FROM A SCENE, THEY WILL
-            // BE USED IN THE FINAL CLIENT
-            // string inputFile = "default.scene";
-            // string outputFile = "testOutput.ppm";           
-            // var vs = RayTracer.RayTracer.ReadScene(inputFile);
-            // var view = vs.Item1;
-            // var width = view.Item1;
-            // var height = view.Item2;
-            
-            // RayTracer.RayTracer rayTracer = new RayTracer.RayTracer(width, height);
-            // byte[,,] bitmap = new byte[width, height, 3];
-            
-            // for(int x = 0; x < width; x++) {
-            //     for(int y = 0; y < height; y++) {
-            //         UpdateBitMap(rayTracer.Render(vs.Item2, x, y), bitmap);
-            //     }
-            // }
-            // WritePPM(outputFile, bitmap);
-        /////////////////////////////////////////////////////
-
-
-
-            // byte[,,] bitmap = new byte[400, 400, 3];
-            // RayTracer.RayTracer rayTracer = new RayTracer.RayTracer(400, 400,
-            //     (int x, int y, Color color) => { bitmap[x, y] = color; });;
-            
-            // byte[] returnBytes = new byte[11];
-            // returnBytes[0] = RayTracer.RayTracerApp.ToByte(200.0);
-            // returnBytes[1] = RayTracer.RayTracerApp.ToByte(180.0);
-            // returnBytes[2] = RayTracer.RayTracerApp.ToByte(160.0);
-            // var byteSpan = new Span<byte>(returnBytes);
-            // BinaryPrimitives.WriteInt32BigEndian(byteSpan.Slice(3,4), 300);
-            // BinaryPrimitives.WriteInt32BigEndian(byteSpan.Slice(7,4), 250);
-            // UpdateBitMap(returnBytes, bitmap);
-            // Console.WriteLine(bitmap[300,250].R);
-            // Console.WriteLine(bitmap[300,250].G);
-            // Console.WriteLine(bitmap[300,250].B);
-
-            // var testResult = BinaryPrimitives.ReadInt32BigEndian(byteSpan.Slice(3, 4));
-            // Console.WriteLine(testResult);
-            // double testDouble = 156;
-            // var testByte = RayTracerApp.ToByte(testDouble);
-            // var testByte = Convert.ToByte(testDouble);
-            // byte[] testByteArray = new byte[8];
-            // testByteArray[7] = testByte;
-            // var returnDouble = Convert.ToDouble(testByte);
-            // if we wanted to, we could put the testByte into a byte[] and then convert it to a Double
-            // Console.WriteLine(returnDouble);
         }
 
         static void UpdateBitMap(byte[] update, byte[,,] bitmapToEdit) {
@@ -183,3 +136,58 @@ namespace server{
         }
     }
 }*/
+
+ // RayTracer.RayTracerApp.WritePPM("test", bitmap);
+
+            // foreach (List<string> arrayLine in stringArray) {
+            //     System.Console.WriteLine("{0}~{1}~{2}", arrayLine[1], arrayLine[0], arrayLine[2]);
+            // }
+
+            // THESE LINES TEST RENDERING FROM A SCENE, THEY WILL
+            // BE USED IN THE FINAL CLIENT
+            // string inputFile = "default.scene";
+            // string outputFile = "testOutput.ppm";           
+            // var vs = RayTracer.RayTracer.ReadScene(inputFile);
+            // var view = vs.Item1;
+            // var width = view.Item1;
+            // var height = view.Item2;
+            
+            // RayTracer.RayTracer rayTracer = new RayTracer.RayTracer(width, height);
+            // byte[,,] bitmap = new byte[width, height, 3];
+            
+            // for(int x = 0; x < width; x++) {
+            //     for(int y = 0; y < height; y++) {
+            //         UpdateBitMap(rayTracer.Render(vs.Item2, x, y), bitmap);
+            //     }
+            // }
+            // WritePPM(outputFile, bitmap);
+        /////////////////////////////////////////////////////
+
+
+
+            // byte[,,] bitmap = new byte[400, 400, 3];
+            // RayTracer.RayTracer rayTracer = new RayTracer.RayTracer(400, 400,
+            //     (int x, int y, Color color) => { bitmap[x, y] = color; });;
+            
+            // byte[] returnBytes = new byte[11];
+            // returnBytes[0] = RayTracer.RayTracerApp.ToByte(200.0);
+            // returnBytes[1] = RayTracer.RayTracerApp.ToByte(180.0);
+            // returnBytes[2] = RayTracer.RayTracerApp.ToByte(160.0);
+            // var byteSpan = new Span<byte>(returnBytes);
+            // BinaryPrimitives.WriteInt32BigEndian(byteSpan.Slice(3,4), 300);
+            // BinaryPrimitives.WriteInt32BigEndian(byteSpan.Slice(7,4), 250);
+            // UpdateBitMap(returnBytes, bitmap);
+            // Console.WriteLine(bitmap[300,250].R);
+            // Console.WriteLine(bitmap[300,250].G);
+            // Console.WriteLine(bitmap[300,250].B);
+
+            // var testResult = BinaryPrimitives.ReadInt32BigEndian(byteSpan.Slice(3, 4));
+            // Console.WriteLine(testResult);
+            // double testDouble = 156;
+            // var testByte = RayTracerApp.ToByte(testDouble);
+            // var testByte = Convert.ToByte(testDouble);
+            // byte[] testByteArray = new byte[8];
+            // testByteArray[7] = testByte;
+            // var returnDouble = Convert.ToDouble(testByte);
+            // if we wanted to, we could put the testByte into a byte[] and then convert it to a Double
+            // Console.WriteLine(returnDouble);
