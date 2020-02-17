@@ -35,9 +35,11 @@ namespace TestServer
                 counter++;
             }
 
-            foreach (String decoded in sceneFile) {
-                Console.WriteLine(decoded);
-            }
+            File.WriteAllLines(@"default.scene", sceneFile);
+
+            // foreach (String decoded in sceneFile) {
+            //     Console.WriteLine(decoded);
+            // }
 
             // for(;;){
             //     IPEndPoint ip = null;
