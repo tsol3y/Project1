@@ -9,45 +9,33 @@ using System.Collections.Generic;
 
 namespace Client {
     class Program {
-        static void Main(string[] args) {//needs to be able to take a scene file input
-            // Read the file and display it line by line.  
-            int counter = 0;
-            string line;
-            List<List<string>> stringList = new List<List<string>>();
-            // File file = new File(@"default.scene");
-            StreamReader file = new StreamReader(@"default.scene");
+        static void Main(String[] args) {//needs to be able to take a scene file input  
+            var sceneArray = GenerateSceneArray(args[0]);
+            var utf8 = new UTF8Encoding();
+            // UdpClient c = new UdpClient(3333); //there were specific instructions about what port to use
 
-            // for (int i = 0; i < fileLength; i++) {
-            //     stringArray[i] = sReader.ReadLine();
-            //     Console.WriteLine(stringArray[i]);
-            // }
-
-           while((line = file.ReadLine()) != null) {
-                stringList.Add(new List<string>());
-                stringList[counter].Add((counter + 1).ToString());
-                stringList[counter].Add(line);
-                //System.Console.WriteLine(line); 
-                counter++;
-            }
-
-            file.Close();  
-
-            for (int i = 0; i < counter; i++) {
-                stringList[i].Insert(0, counter.ToString());
-            }
-
-            var stringArray = stringList.ToArray();
             
-            foreach (List<string> arrayLine in stringArray) {
-                System.Console.WriteLine("{0} / {1} {2}", arrayLine[1], arrayLine[0], arrayLine[2]);
+            //var startMsg = Console.ReadLine();//sceneArray[i]
+            foreach (byte [] encodedString in sceneArray) {
+                Console.WriteLine(utf8.GetString(encodedString, 0, encodedString.Length));
             }
-            // for(int i = 0; i < fileLength; i++){
-            //     Console.WriteLine(stringArray[i]);
+            // byte[] bytes = utf8.GetBytes(startMsg);
+
+            // var ip = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 3334);
+            // c.Send(bytes, startMsg.Length, ip);
+            // var receivedBytes = c.Receive(ref ip);
+
+            //var utf8 = new UTF8Encoding();//why is this encoding instead of decoding?
+            // UdpClient s = new UdpClient(3000);//UDP is receiving messages on port 3000
+                                   
+            //var m = utf8.GetString(data, 0, data.Length);//GetString turns the bytes into a string
+
+            
+            // RayTracer.RayTracerApp.WritePPM("test", bitmap);
+
+            // foreach (List<string> arrayLine in stringArray) {
+            //     System.Console.WriteLine("{0}~{1}~{2}", arrayLine[1], arrayLine[0], arrayLine[2]);
             // }
-
-
-
-
 
             // THESE LINES TEST RENDERING FROM A SCENE, THEY WILL
             // BE USED IN THE FINAL CLIENT
@@ -63,7 +51,7 @@ namespace Client {
             
             // for(int x = 0; x < width; x++) {
             //     for(int y = 0; y < height; y++) {
-            //         updateBitMap(rayTracer.Render(vs.Item2, x, y), bitmap);
+            //         UpdateBitMap(rayTracer.Render(vs.Item2, x, y), bitmap);
             //     }
             // }
             // WritePPM(outputFile, bitmap);
@@ -82,7 +70,7 @@ namespace Client {
             // var byteSpan = new Span<byte>(returnBytes);
             // BinaryPrimitives.WriteInt32BigEndian(byteSpan.Slice(3,4), 300);
             // BinaryPrimitives.WriteInt32BigEndian(byteSpan.Slice(7,4), 250);
-            // updateBitMap(returnBytes, bitmap);
+            // UpdateBitMap(returnBytes, bitmap);
             // Console.WriteLine(bitmap[300,250].R);
             // Console.WriteLine(bitmap[300,250].G);
             // Console.WriteLine(bitmap[300,250].B);
@@ -97,22 +85,9 @@ namespace Client {
             // var returnDouble = Convert.ToDouble(testByte);
             // if we wanted to, we could put the testByte into a byte[] and then convert it to a Double
             // Console.WriteLine(returnDouble);
-
-
-            /*var utf8 = new UTF8Encoding();
-            UdpClient c = new UdpClient(3333);
-
-            var startMsg = Console.ReadLine();
-            byte[] bytes = utf8.GetBytes(startMsg);
-
-            var ip = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 3334);
-            c.Send(bytes, startMsg.Length, ip);
-            var receivedBytes = c.Receive(ref ip);
-            
-            RayTracer.RayTracerApp.WritePPM("test", bitmap);*/
         }
 
-        static void updateBitMap(byte[] update, byte[,,] bitmapToEdit) {
+        static void UpdateBitMap(byte[] update, byte[,,] bitmapToEdit) {
             var byteSpan = new Span<byte>(update);
             var X = BinaryPrimitives.ReadInt32BigEndian(byteSpan.Slice(3, 4));
             var Y = BinaryPrimitives.ReadInt32BigEndian(byteSpan.Slice(7, 4));
@@ -140,7 +115,38 @@ namespace Client {
                 }
             }
         }
+        
+        public static byte[][] GenerateSceneArray(String filename) {
+            int counter = 0;
+            String line;
+            List<List<String>> stringList = new List<List<String>>();
+            StreamReader file = new StreamReader(@filename);
 
+           while((line = file.ReadLine()) != null) {
+                stringList.Add(new List<String>());
+                stringList[counter].Add((counter + 1).ToString());
+                stringList[counter].Add(line);
+                counter++;
+            }
+
+            file.Close();
+            String lineCount = counter.ToString();
+
+            for (int i = 0; i < counter; i++) {
+                stringList[i].Insert(0, lineCount);
+            }
+
+            byte[][] encodedArray = new byte[counter][];
+            var utf8 = new UTF8Encoding();
+            
+            for (int i = 0; i < counter; i++) {
+                encodedArray[i] = utf8.GetBytes((String.Format("{0}~{1}~{2}", stringList[i][1], stringList[i][0], stringList[i][2])));
+            }
+
+           // byte[] bytes = utf8.GetBytes(startMsg);
+
+            return encodedArray;
+        }
     }
 }
 
