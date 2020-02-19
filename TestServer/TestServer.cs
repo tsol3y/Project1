@@ -96,19 +96,21 @@ namespace TestServer
             var tracerScene = RayTracer.RayTracer.ReadScene(args[0]).Item2;
             RayTracer.RayTracer rayTracer = new RayTracer.RayTracer(width, height);
             
-            server.Send(new byte[0], 0, clientIP);//Confirm
+            server.Send(new byte[0], 0, clientIP);//Confirm the server has received all of the scene file
             while (true) {
                 var action = Task.WaitAny(listener);
                 switch(action) {
-                    case 0:
+                    case 0://Receiving a request 
                         var clientRequest = await listener;
                         var bufferedRequest = clientRequest.Buffer;
                         var packetLength = bufferedRequest.Length;
-                        var requestCoordinates = UnpackRequest(bufferedRequest);
-                        var xNew = requestCoordinates.Item1;
-                        var yNew = requestCoordinates.Item2;
-                        var returnTrace = rayTracer.Render(tracerScene, xNew, yNew);
-                        server.Send(returnTrace, returnTrace.Length, clientIP);
+                        if (packetLength == 4) {//make sure this is a raytracing requests
+                            var y = UnpackLineRequest(bufferedRequest);
+                            var returnTrace = rayTracer.Render(tracerScene, y);
+                            
+                            server.Send(returnTrace, returnTrace.Length, clientIP);
+                        }
+                        listener = server.ReceiveAsync();
                         break;
                     default:
                         break;
@@ -145,9 +147,9 @@ namespace TestServer
             return missingLine;
         }
 
-        public static (int, int) UnpackRequest(byte[] lineNumber) {
+        public static int UnpackLineRequest(byte[] lineNumber) {
             var byteSpan = new Span <byte>(lineNumber);
-            return (BinaryPrimitives.ReadInt32BigEndian(byteSpan.Slice(0, 4)), BinaryPrimitives.ReadInt32BigEndian(byteSpan.Slice(4, 4)));
+            return (BinaryPrimitives.ReadInt32BigEndian(byteSpan.Slice(0, 4)));
         }
     }
 }

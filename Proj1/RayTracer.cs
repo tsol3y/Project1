@@ -92,19 +92,23 @@ namespace RayTracer {
                                                                        Vector.Times(RecenterY(y), camera.Up))));
         }
 
-        internal byte[] Render(Scene scene, int x, int y) {//add two coordinates as inputs
+        internal byte[] Render(Scene scene, int y) {//add two coordinates as inputs
             /* instead of using Render here, which does the entire scene at once, our server will 
                do one pixel at a time, since that is what it is going to be sending back to the
                client */
-            Color color = TraceRay(new Ray() { Start = scene.Camera.Pos, Dir = GetPoint(x, y, scene.Camera) }, scene, 0);
-            byte[] returnBytes = new byte[11];
+            Console.WriteLine(y.ToString());
+            byte[] returnBytes = new byte[4 + screenWidth * 3];
             
-            returnBytes[0] = RayTracerApp.ToByte(color.R); //tobytes
-            returnBytes[1] = RayTracerApp.ToByte(color.G);
-            returnBytes[2] = RayTracerApp.ToByte(color.B); //tobytes
-            var byteSpan = new Span<byte>(returnBytes);
-            BinaryPrimitives.WriteInt32BigEndian(byteSpan.Slice(3,4), x);
-            BinaryPrimitives.WriteInt32BigEndian(byteSpan.Slice(7,4), y);
+            for(int x = 0; x < screenWidth; x++) {
+                Color color = TraceRay(new Ray() { Start = scene.Camera.Pos, Dir = GetPoint(x, y, scene.Camera) }, scene, 0);
+                var byteSpan = new Span<byte>(returnBytes);
+                BinaryPrimitives.WriteInt32BigEndian(byteSpan.Slice(0,4), y);
+                returnBytes[4 + x * 3] = RayTracerApp.ToByte(color.R); //tobytes
+                returnBytes[5 + x * 3] = RayTracerApp.ToByte(color.G);
+                returnBytes[6 + x * 3] = RayTracerApp.ToByte(color.B); //tobytes
+                // BinaryPrimitives.WriteInt32BigEndian(byteSpan.Slice(3,4), x);
+            }
+            
             return returnBytes;
             // ReturnBytes[..] = Offset X & Y
             //string returnString = string.Format(formatString, x.ToString(), y.ToString(), color.R.ToString(), color.G.ToString(), color.B.ToString());

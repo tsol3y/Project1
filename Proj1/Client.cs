@@ -15,11 +15,9 @@ namespace Client {
             // 
             var width = Int32.Parse(args[2]);
             var height = Int32.Parse(args[3]);
-            List <(int,int)> pixelsCompleted = new List<(int,int)>();
-            for (int x = 0; x < width; x++) {
-                for (int y = 0; y < height; y++) {
-                    pixelsCompleted.Add((x, y));
-                }
+            List <int> rowsCompleted = new List<int>();
+            for (int y = 0; y < height; y++) {
+                rowsCompleted.Add(y);
             }
             
             byte[,,] bitmap = new byte[width, height, 3];
@@ -43,8 +41,8 @@ namespace Client {
             var listener = client.ReceiveAsync();
             var notFinished = true;
             IPEndPoint queueIP = null;
-            int currentPixel = 0;
-            var currentCoordinates = (0, 0);
+            int currentRow = -1;
+            // var currentCoordinates = (0, 0);
             byte[] traceRequest = new byte[8];
 
             while(notFinished) {
@@ -62,10 +60,15 @@ namespace Client {
                         } else if (packetLength == 0) {         // Confirmation
                             if (!availableMachines.Contains(incomingIP)) {
                                 availableMachines.Enqueue(incomingIP);
+                                Console.WriteLine("Confirmed");
                             }
                             // Console.WriteLine("Confirmed");
-                        } else if (packetLength == 11) {   //Receiving pixel back 
-                            pixelsCompleted.Remove(UpdateBitMap(bufferedResponse, bitmap));
+                        } else if (packetLength == 4 + width * 3) {   //Receiving pixel back 
+                            rowsCompleted.Remove(UpdateBitMap(bufferedResponse, bitmap, width));
+                            Console.WriteLine("Updated a row!");
+                            for (int i = 0; i < rowsCompleted.Count; i++) {
+                                Console.WriteLine(rowsCompleted[i].ToString());
+                            }
                             break;
                         }
                         listener = client.ReceiveAsync();
@@ -74,20 +77,25 @@ namespace Client {
                         break;
                 }
                 // Console.WriteLine(availableMachines.Count);
-                if (availableMachines.Count > 0) {
-                    if (pixelsCompleted.Count > 0) {
-                        currentCoordinates = pixelsCompleted[currentPixel];
-                        traceRequest = PackPixelCoordinates(currentCoordinates);
+                // ****** Ask Ryan if servers can store multiple packets at a time or if
+                // ****** we should just be sending one and waiting for a response
+                // ****** to avoid overloading servers. We could not enqueue a server again
+                // ****** until we have gotten a response from the server.
+                if (currentRow < rowsCompleted.Count - 1) {
+                    Console.WriteLine("increased current row");
+                    currentRow++;
+                } else {
+                    Console.WriteLine("reset current row");
+                    currentRow = 0;
+                }
+                if (availableMachines.Count > 0) {//Sending a raytracing request based on which machines are available
+                    if (rowsCompleted.Count > 0) {
+                        traceRequest = PackLineRequest(rowsCompleted[currentRow]);
                         queueIP = availableMachines.Dequeue();
                         availableMachines.Enqueue(queueIP);
                         // Console.WriteLine("Sending a pixel request");
                         client.Send(traceRequest, traceRequest.Length, queueIP);
-                        client.Send(traceRequest, traceRequest.Length, queueIP);
-                        if (currentPixel < pixelsCompleted.Count) {
-                            currentPixel++;
-                        } else {
-                            currentPixel = 0;
-                        }
+
                     } else {
                         notFinished = false;
                     }
@@ -113,29 +121,27 @@ namespace Client {
             //var m = utf8.GetString(data, 0, data.Length);//GetString turns the bytes into a string
 
         }
-        public static byte[] PackPixelCoordinates((int, int) coordinateTuple) {
-            byte[] returnBytes = new byte[8];
-            var x = coordinateTuple.Item1;
-            var y = coordinateTuple.Item2;
-            
+        public static byte[] PackLineRequest(int row) {
+            byte[] returnBytes = new byte[4];
             var byteSpan = new Span <byte>(returnBytes);
-            BinaryPrimitives.WriteInt32BigEndian(byteSpan.Slice(0, 4), x);
-            BinaryPrimitives.WriteInt32BigEndian(byteSpan.Slice(4, 4), y);
+            BinaryPrimitives.WriteInt32BigEndian(byteSpan.Slice(0, 4), row);
             return returnBytes;
         }
         public static int UnpackMissingLine(byte[] lineNumber) {
             var byteSpan = new Span <byte>(lineNumber);
             return BinaryPrimitives.ReadInt32BigEndian(byteSpan.Slice(0, 4));
         }
-        static (int, int) UpdateBitMap(byte[] update, byte[,,] bitmapToEdit) {
+        static int UpdateBitMap(byte[] update, byte[,,] bitmapToEdit, int width) {
             var byteSpan = new Span<byte>(update);
-            var X = BinaryPrimitives.ReadInt32BigEndian(byteSpan.Slice(3, 4));
-            var Y = BinaryPrimitives.ReadInt32BigEndian(byteSpan.Slice(7, 4));
+            var Y = BinaryPrimitives.ReadInt32BigEndian(byteSpan.Slice(0, 4));
             // Console.WriteLine("Updating some pixel");
-            bitmapToEdit[X,Y,0] = update[0];
-            bitmapToEdit[X,Y,1] = update[1];
-            bitmapToEdit[X,Y,2] = update[2];
-            return (X, Y);
+            for(int X = 0; X < width; X++){
+                bitmapToEdit[X,Y,0] = update[4 + X * 3];
+                bitmapToEdit[X,Y,1] = update[5 + X * 3];
+                bitmapToEdit[X,Y,2] = update[6 + X * 3];
+            }
+            Console.WriteLine("Updating Row " + Y.ToString());
+            return Y;
         }
 
         public static void WritePPM(String fileName, byte[,,] bitmap)
