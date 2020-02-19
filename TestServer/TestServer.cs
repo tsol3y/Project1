@@ -17,10 +17,26 @@ namespace TestServer
         {
             var utf8 = new UTF8Encoding();//why is this encoding instead of decoding?
             UdpClient server = new UdpClient(3334);//UDP is receiving messages on port 3000
-
-            IPEndPoint ip = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 3333);
-            
-            byte[] initialLine = server.Receive(ref ip);
+            bool notReceivedFirstPacket = true;
+            // IPEndPoint ip = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 3333);
+            var listener = server.ReceiveAsync();
+            byte[] initialLine = new byte[0];
+            IPEndPoint clientIP = null;
+            while (notReceivedFirstPacket) {
+                var action = Task.WaitAny(listener);
+                switch(action) {
+                    case 0:
+                        var firstPacket = await listener;
+                        initialLine = firstPacket.Buffer;
+                        clientIP = firstPacket.RemoteEndPoint;
+                        notReceivedFirstPacket = false;
+                        break;
+                    default:
+                        break;
+                }
+            }
+            // byte[] initialLine = server.Receive(ref ip);
+            //IPEndPoint
             String[] decodedLine = utf8.GetString(initialLine, 0, initialLine.Length).Split("~");            
             String[] sceneFile = new String[Int32.Parse(decodedLine[1])];
             sceneFile[Int32.Parse(decodedLine[0]) - 1] = decodedLine[2];
@@ -30,10 +46,10 @@ namespace TestServer
             // int counter = 1;
             // int upper = Int32.Parse(decodedLine[1]);
 
-            var listener = server.ReceiveAsync();
+            listener = server.ReceiveAsync();
             var timeout = Task.Delay(500);
             var sceneNotComplete = true;
-
+////////////////////Receiving scene file/////////////////////////////////////
             while (sceneNotComplete) {
                 var action = Task.WaitAny(listener, timeout);
                 switch(action) {
@@ -47,6 +63,8 @@ namespace TestServer
                         // if (sceneFile.Where(l => String.IsNullOrEmpty(l)).Select()) {
                         // if (sceneFile.Count(l => String.IsNullOrEmpty(l)) == 0) {
                         if (sceneFile.Count(l => l == null) == 0) {
+                            server.Send(new byte[0], 0, clientIP);
+                            File.WriteAllLines(@args[0], sceneFile);
                             sceneNotComplete = false;
                         }
                         listener = server.ReceiveAsync();
@@ -63,7 +81,7 @@ namespace TestServer
                             // server.Send(missingLine);
                             Console.WriteLine(index);
                             var missingLine = PackMissingLine(index);
-                            server.Send(missingLine, missingLine.Length, ip);
+                            server.Send(missingLine, missingLine.Length, clientIP);
                         }
                         timeout = Task.Delay(500);
                         break;
@@ -79,8 +97,8 @@ namespace TestServer
             //     counter++;
             // }
 
-            //Send confirmation that all lines have been received
-            File.WriteAllLines(@args[0], sceneFile);
+            
+            
 
             // foreach (String decoded in sceneFile) {
             //     Console.WriteLine(decoded);

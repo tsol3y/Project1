@@ -13,6 +13,18 @@ namespace Client {
         async static Task Main(String[] args) {//needs to be able to take a scene file input  
             // We need to figure out where we are getting the IP addresses and port numbers
             // 
+            var width = args[1];
+            var height = args[2];
+            list <(int,int)> pixelsCompleted = new list<(int,int)> [];
+            for (int x = 0; x < width; x++) {
+                for (int y = 0; y < height; y++) {
+                    pixelsCompleted.Add((x, y));
+                }
+            }
+            
+            byte[,,] bitmap = new byte[width, height, 3];
+
+            Queue<IPEndPoint> availableMachines = new Queue<IPEndPoint>();
             byte[][] sceneArray = GenerateSceneArray(args[0]);   // send this to the server first
             UTF8Encoding utf8 = new UTF8Encoding();
             UdpClient client = new UdpClient(3333); //there were specific instructions about what port to use
@@ -28,22 +40,45 @@ namespace Client {
             // Listen to send back whatever it's missing
             var listener = client.ReceiveAsync();
             var notFinished = true;
-            
+            IPEndPoint queueIP = null;
+            int currentPixel = 0;
+            var currentCoordinates = (0, 0);
+            byte[] traceRequest = new byte[8];
+
             while(notFinished) {
                 var action = Task.WaitAny(listener);
                 switch(action) {
                     case 0:
                         var serverResponse = await listener;
                         var bufferedResponse = serverResponse.Buffer;
-                        if (bufferedResponse.Length == 4) {
+                        var packetLength = bufferedResponse.Length;
+                        var incomingIP = serverResponse.RemoteEndPoint;
+                        
+                        if (packetLength == 4) {
                             var missingLine = UnpackMissingLine(bufferedResponse);
                             client.Send(sceneArray[missingLine], sceneArray[missingLine].Length, ip);
+                        } else if (packetLength == 0) {         // Confirmation
+                            if (!availableMachines.Contains(incomingIP)) {
+                                availableMachines.Enqueue(incomingIP);
+                            }
+                            Console.WriteLine("Confirmed");
+                        } else if (packetLength == 11) {   //Receiving pixel back 
+                            pixelsCompleted.Remove(UpdateBitMap(bufferedResponse, bitmap));
+                            break;
                         }
                         listener = client.ReceiveAsync();
                         break;
                     default:
                         break;
                 }
+                if (availableMachines.Count > 0) {
+                    currentCoordinates = pixelsCompleted[currentPixel];
+                    traceRequest = PackPixelCoordinates(currentCoordinates);
+                    queueIP = availableMachines.Dequeue;
+                    availableMachines.Enqueue(queueIP);
+                    client.Send(traceRequest, traceRequest.Length, queueIP);
+                }
+                
             }
             // Console.WriteLine(BinaryPrimitives.ReadInt32BigEndian(client.Receive(ref ip)));
             // IPEndPoint[] serverArray = 
@@ -64,17 +99,28 @@ namespace Client {
             //var m = utf8.GetString(data, 0, data.Length);//GetString turns the bytes into a string
 
         }
+        public static byte[] PackPixelCoordinates((int, int) coordinateTuple) {
+            byte[] returnBytes = new byte[8];
+            var x = coordinateTuple.Item1;
+            var y = coordinateTuple.Item2;
+            
+            var byteSpan = new Span <byte>(returnBytes);
+            BinaryPrimitives.WriteInt32BigEndian(byteSpan.Slice(0, 4), x);
+            BinaryPrimitives.WriteInt32BigEndian(byteSpan.Slice(4, 4), y);
+            return returnBytes;
+        }
         public static int UnpackMissingLine(byte[] lineNumber) {
             var byteSpan = new Span <byte>(lineNumber);
             return BinaryPrimitives.ReadInt32BigEndian(byteSpan.Slice(0, 4));
         }
-        static void UpdateBitMap(byte[] update, byte[,,] bitmapToEdit) {
+        static (int, int) UpdateBitMap(byte[] update, byte[,,] bitmapToEdit) {
             var byteSpan = new Span<byte>(update);
             var X = BinaryPrimitives.ReadInt32BigEndian(byteSpan.Slice(3, 4));
             var Y = BinaryPrimitives.ReadInt32BigEndian(byteSpan.Slice(7, 4));
             bitmapToEdit[X,Y,0] = update[0];
             bitmapToEdit[X,Y,1] = update[1];
             bitmapToEdit[X,Y,2] = update[2];
+            return (X, Y);
         }
 
         public static void WritePPM(String fileName, byte[,,] bitmap)
