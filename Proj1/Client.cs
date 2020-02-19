@@ -13,9 +13,9 @@ namespace Client {
         async static Task Main(String[] args) {//needs to be able to take a scene file input  
             // We need to figure out where we are getting the IP addresses and port numbers
             // 
-            var width = args[1];
-            var height = args[2];
-            list <(int,int)> pixelsCompleted = new list<(int,int)> [];
+            var width = Int32.Parse(args[2]);
+            var height = Int32.Parse(args[3]);
+            List <(int,int)> pixelsCompleted = new List<(int,int)>();
             for (int x = 0; x < width; x++) {
                 for (int y = 0; y < height; y++) {
                     pixelsCompleted.Add((x, y));
@@ -25,10 +25,12 @@ namespace Client {
             byte[,,] bitmap = new byte[width, height, 3];
 
             Queue<IPEndPoint> availableMachines = new Queue<IPEndPoint>();
-            byte[][] sceneArray = GenerateSceneArray(args[0]);   // send this to the server first
+            byte[][] sceneArray = GenerateSceneArray(args[0], width, height);   // send this to the server first
             UTF8Encoding utf8 = new UTF8Encoding();
             UdpClient client = new UdpClient(3333); //there were specific instructions about what port to use
             
+
+            // NEED TO READ SERVER LIST HERE!!!!!(@#(%*^@#(*%)))
             IPEndPoint ip = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 3334);
             // foreach (byte [] encodedString in sceneArray) {
             //     client.Send(encodedString, encodedString.Length, ip);
@@ -61,7 +63,7 @@ namespace Client {
                             if (!availableMachines.Contains(incomingIP)) {
                                 availableMachines.Enqueue(incomingIP);
                             }
-                            Console.WriteLine("Confirmed");
+                            // Console.WriteLine("Confirmed");
                         } else if (packetLength == 11) {   //Receiving pixel back 
                             pixelsCompleted.Remove(UpdateBitMap(bufferedResponse, bitmap));
                             break;
@@ -71,15 +73,27 @@ namespace Client {
                     default:
                         break;
                 }
+                // Console.WriteLine(availableMachines.Count);
                 if (availableMachines.Count > 0) {
-                    currentCoordinates = pixelsCompleted[currentPixel];
-                    traceRequest = PackPixelCoordinates(currentCoordinates);
-                    queueIP = availableMachines.Dequeue;
-                    availableMachines.Enqueue(queueIP);
-                    client.Send(traceRequest, traceRequest.Length, queueIP);
+                    if (pixelsCompleted.Count > 0) {
+                        currentCoordinates = pixelsCompleted[currentPixel];
+                        traceRequest = PackPixelCoordinates(currentCoordinates);
+                        queueIP = availableMachines.Dequeue();
+                        availableMachines.Enqueue(queueIP);
+                        // Console.WriteLine("Sending a pixel request");
+                        client.Send(traceRequest, traceRequest.Length, queueIP);
+                        client.Send(traceRequest, traceRequest.Length, queueIP);
+                        if (currentPixel < pixelsCompleted.Count) {
+                            currentPixel++;
+                        } else {
+                            currentPixel = 0;
+                        }
+                    } else {
+                        notFinished = false;
+                    }
                 }
-                
             }
+            WritePPM(args[1], bitmap);
             // Console.WriteLine(BinaryPrimitives.ReadInt32BigEndian(client.Receive(ref ip)));
             // IPEndPoint[] serverArray = 
             
@@ -117,6 +131,7 @@ namespace Client {
             var byteSpan = new Span<byte>(update);
             var X = BinaryPrimitives.ReadInt32BigEndian(byteSpan.Slice(3, 4));
             var Y = BinaryPrimitives.ReadInt32BigEndian(byteSpan.Slice(7, 4));
+            // Console.WriteLine("Updating some pixel");
             bitmapToEdit[X,Y,0] = update[0];
             bitmapToEdit[X,Y,1] = update[1];
             bitmapToEdit[X,Y,2] = update[2];
@@ -143,7 +158,7 @@ namespace Client {
             }
         }
         
-        public static byte[][] GenerateSceneArray(String filename) {
+        public static byte[][] GenerateSceneArray(String filename, int width, int height) {
             int counter = 0;
             String line;
             List<List<String>> stringList = new List<List<String>>();
@@ -153,6 +168,8 @@ namespace Client {
                 stringList.Add(new List<String>());
                 stringList[counter].Add((counter + 1).ToString());
                 stringList[counter].Add(line);
+                stringList[counter].Add(width.ToString());
+                stringList[counter].Add(height.ToString());
                 counter++;
             }
 
@@ -167,7 +184,7 @@ namespace Client {
             var utf8 = new UTF8Encoding();
             
             for (int i = 0; i < counter; i++) {
-                encodedArray[i] = utf8.GetBytes((String.Format("{0}~{1}~{2}", stringList[i][1], stringList[i][0], stringList[i][2])));
+                encodedArray[i] = utf8.GetBytes((String.Format("{0}~{1}~{2}~{3}~{4}", stringList[i][1], stringList[i][0], stringList[i][2], stringList[i][3], stringList[i][4])));
             }
 
            // byte[] bytes = utf8.GetBytes(startMsg);

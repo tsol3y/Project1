@@ -40,6 +40,8 @@ namespace TestServer
             String[] decodedLine = utf8.GetString(initialLine, 0, initialLine.Length).Split("~");            
             String[] sceneFile = new String[Int32.Parse(decodedLine[1])];
             sceneFile[Int32.Parse(decodedLine[0]) - 1] = decodedLine[2];
+            int width = Int32.Parse(decodedLine[3]);
+            int height = Int32.Parse(decodedLine[4]);
             //need to receive one line to know how big the byte array should be
             
             // we have already received the first packet so counter starts at 1
@@ -63,7 +65,6 @@ namespace TestServer
                         // if (sceneFile.Where(l => String.IsNullOrEmpty(l)).Select()) {
                         // if (sceneFile.Count(l => String.IsNullOrEmpty(l)) == 0) {
                         if (sceneFile.Count(l => l == null) == 0) {
-                            server.Send(new byte[0], 0, clientIP);
                             File.WriteAllLines(@args[0], sceneFile);
                             sceneNotComplete = false;
                         }
@@ -79,13 +80,37 @@ namespace TestServer
                             // var byteSpan = new Span <byte>(missingLine);
                             // BinaryPrimitives.WriteInt32BigEndian(byteSpan.Slice(0, 4), index);
                             // server.Send(missingLine);
-                            Console.WriteLine(index);
+                            // Console.WriteLine(index);
                             var missingLine = PackMissingLine(index);
                             server.Send(missingLine, missingLine.Length, clientIP);
+        
                         }
                         timeout = Task.Delay(500);
                         break;
                     default: 
+                        break;
+                }
+            }
+            
+            listener = server.ReceiveAsync();
+            var tracerScene = RayTracer.RayTracer.ReadScene(args[0]).Item2;
+            RayTracer.RayTracer rayTracer = new RayTracer.RayTracer(width, height);
+            
+            server.Send(new byte[0], 0, clientIP);//Confirm
+            while (true) {
+                var action = Task.WaitAny(listener);
+                switch(action) {
+                    case 0:
+                        var clientRequest = await listener;
+                        var bufferedRequest = clientRequest.Buffer;
+                        var packetLength = bufferedRequest.Length;
+                        var requestCoordinates = UnpackRequest(bufferedRequest);
+                        var xNew = requestCoordinates.Item1;
+                        var yNew = requestCoordinates.Item2;
+                        var returnTrace = rayTracer.Render(tracerScene, xNew, yNew);
+                        server.Send(returnTrace, returnTrace.Length, clientIP);
+                        break;
+                    default:
                         break;
                 }
             }
@@ -118,6 +143,11 @@ namespace TestServer
             var byteSpan = new Span <byte>(missingLine);
             BinaryPrimitives.WriteInt32BigEndian(byteSpan.Slice(0, 4), lineNumber);
             return missingLine;
+        }
+
+        public static (int, int) UnpackRequest(byte[] lineNumber) {
+            var byteSpan = new Span <byte>(lineNumber);
+            return (BinaryPrimitives.ReadInt32BigEndian(byteSpan.Slice(0, 4)), BinaryPrimitives.ReadInt32BigEndian(byteSpan.Slice(4, 4)));
         }
     }
 }
