@@ -13,15 +13,15 @@ namespace TestServer
 {
     class Program
     {
-        async static Task Main(string[] args)
+        async static Task Main(string[] args) // args contains one input, scene filename
         {
-            var utf8 = new UTF8Encoding();//why is this encoding instead of decoding?
-            UdpClient server = new UdpClient(3334);//UDP is receiving messages on port 3000
+            var utf8 = new UTF8Encoding();
+            UdpClient server = new UdpClient(3334);
             bool notReceivedFirstPacket = true;
-            // IPEndPoint ip = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 3333);
             var listener = server.ReceiveAsync();
             byte[] initialLine = new byte[0];
             IPEndPoint clientIP = null;
+
             while (notReceivedFirstPacket) {
                 var action = Task.WaitAny(listener);
                 switch(action) {
@@ -35,36 +35,27 @@ namespace TestServer
                         break;
                 }
             }
-            // byte[] initialLine = server.Receive(ref ip);
-            //IPEndPoint
+
             String[] decodedLine = utf8.GetString(initialLine, 0, initialLine.Length).Split("~");            
             String[] sceneFile = new String[Int32.Parse(decodedLine[1])];
             sceneFile[Int32.Parse(decodedLine[0]) - 1] = decodedLine[2];
             int width = Int32.Parse(decodedLine[3]);
             int height = Int32.Parse(decodedLine[4]);
-            //need to receive one line to know how big the byte array should be
-            
-            // we have already received the first packet so counter starts at 1
-            // int counter = 1;
-            // int upper = Int32.Parse(decodedLine[1]);
 
             listener = server.ReceiveAsync();
             var timeout = Task.Delay(500);
             var sceneNotComplete = true;
-////////////////////Receiving scene file/////////////////////////////////////
+
             while (sceneNotComplete) {
                 var action = Task.WaitAny(listener, timeout);
 
                 switch(action) {
-                    case 0: //Receiving lines
+                    case 0:
                         var sceneLine = await listener;
-                        // decodedLine = utf8.GetString(sceneLine, 0, sceneLine.Length).Split("~");
                         decodedLine = utf8.GetString(sceneLine.Buffer).Split("~");
                
                         sceneFile[Int32.Parse(decodedLine[0]) - 1] = decodedLine[2];
-                        // if the scene file is complete, make sceneNotComplete false
-                        // if (sceneFile.Where(l => String.IsNullOrEmpty(l)).Select()) {
-                        // if (sceneFile.Count(l => String.IsNullOrEmpty(l)) == 0) {
+
                         if (sceneFile.Count(l => l == null) == 0) {
                             File.WriteAllLines(@args[0], sceneFile);
                             sceneNotComplete = false;
@@ -73,15 +64,9 @@ namespace TestServer
                         break;
                     case 1: // timeout and we don't have every line
                         var missingIndices = sceneFile.Select((l, i) => new {l, i})
-                                                    //   .Where(o => String.IsNullOrEmpty(o.l))
                                                       .Where(o => o.l == null)
                                                       .Select(o => o.i);
                         foreach (var index in missingIndices) {
-                            // byte[] missingLine = new byte[4];
-                            // var byteSpan = new Span <byte>(missingLine);
-                            // BinaryPrimitives.WriteInt32BigEndian(byteSpan.Slice(0, 4), index);
-                            // server.Send(missingLine);
-                            // Console.WriteLine(index);
                             var missingLine = PackMissingLine(index);
                             server.Send(missingLine, missingLine.Length, clientIP);
         
@@ -97,24 +82,19 @@ namespace TestServer
             var tracerScene = RayTracer.RayTracer.ReadScene(args[0]).Item2;
             RayTracer.RayTracer rayTracer = new RayTracer.RayTracer(width, height);
             
-            server.Send(new byte[0], 0, clientIP);//Confirm the server has received all of the scene file
+            server.Send(new byte[0], 0, clientIP); // Confirmation
             
             while (true) {
-                // Console.WriteLine("in request loop");
                 var action = Task.WaitAny(listener);
-                // Console.WriteLine(action.ToString());
                 switch(action) {
-                    case 0://Receiving a request 
-                        // Console.WriteLine("Received packet");
+                    case 0:
                         var clientRequest = await listener;
                         var bufferedRequest = clientRequest.Buffer;
                         var packetLength = bufferedRequest.Length;
-                        if (packetLength == 4) {//make sure this is a raytracing requests
+                        if (packetLength == 4) { // ensure this is a request
                             var y = UnpackLineRequest(bufferedRequest);
                             var returnTrace = rayTracer.Render(tracerScene, y);
-                            // Console.WriteLine("returnTrace.Length: " + returnTrace.Length.ToString());
                             server.Send(returnTrace, returnTrace.Length, clientIP);
-                            // Console.WriteLine("Server has returned row");
                         }
                         listener = server.ReceiveAsync();
                         break;
@@ -122,28 +102,6 @@ namespace TestServer
                         break;
                 }
             }
-
-            // while (counter < upper) {
-            //     byte[] sceneLine = server.Receive(ref ip);
-            //     decodedLine = utf8.GetString(sceneLine, 0, sceneLine.Length).Split("~");
-            //     sceneFile[Int32.Parse(decodedLine[0]) - 1] = decodedLine[2];
-            //     counter++;
-            // }
-
-            
-            
-
-            // foreach (String decoded in sceneFile) {
-            //     Console.WriteLine(decoded);
-            // }
-
-            // for(;;){
-            //     IPEndPoint ip = null;
-            //     Byte[] data = s.Receive(ref ip);//Receive receives and returns the message and puts the ip address and
-            //                                     //port number of the sender 
-            //     var m = utf8.GetString(data, 0, data.Length);//GetString turns the bytes into a string
-            //     Console.WriteLine("{0}: {1}", ip, m);//prints to terminal
-            // }
         }
 
         public static byte[] PackMissingLine(int lineNumber) {
@@ -156,9 +114,7 @@ namespace TestServer
         public static int UnpackLineRequest(byte[] lineNumber) {
             var byteSpan = new Span <byte>(lineNumber);
             var test =  BinaryPrimitives.ReadInt32BigEndian(byteSpan.Slice(0, 4));
-            // Console.WriteLine("UnpackLine Request: " + test.ToString());
             return test;
-            // return BinaryPrimitives.ReadInt32BigEndian(byteSpan.Slice(0, 4));
         }
     }
 }
