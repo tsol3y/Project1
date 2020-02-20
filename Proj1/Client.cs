@@ -39,21 +39,27 @@ namespace Client {
             }
             // Listen to send back whatever it's missing
             var listener = client.ReceiveAsync();
+            var timeout = Task.Delay(500);
             var notFinished = true;
             IPEndPoint queueIP = null;
             int currentRow = -1;
             // var currentCoordinates = (0, 0);
             byte[] traceRequest = new byte[8];
 
+            //Receive raytracing packets
             while(notFinished) {
-                var action = Task.WaitAny(listener);
+                //Console.WriteLine("in loop");
+                var action = Task.WaitAny(listener, timeout);
+                //Console.WriteLine(action.ToString());
                 switch(action) {
                     case 0:
+                        // Console.WriteLine("received a packet");
                         var serverResponse = await listener;
                         var bufferedResponse = serverResponse.Buffer;
                         var packetLength = bufferedResponse.Length;
                         var incomingIP = serverResponse.RemoteEndPoint;
                         
+                        // Console.WriteLine("PacketLength----------------" + packetLength.ToString());
                         if (packetLength == 4) {
                             var missingLine = UnpackMissingLine(bufferedResponse);
                             client.Send(sceneArray[missingLine], sceneArray[missingLine].Length, ip);
@@ -62,16 +68,18 @@ namespace Client {
                                 availableMachines.Enqueue(incomingIP);
                                 Console.WriteLine("Confirmed");
                             }
-                            // Console.WriteLine("Confirmed");
-                        } else if (packetLength == 4 + width * 3) {   //Receiving pixel back 
+                        } else if (packetLength == (4 + width * 3)) {   //Receiving pixel back 
                             rowsCompleted.Remove(UpdateBitMap(bufferedResponse, bitmap, width));
-                            Console.WriteLine("Updated a row!");
-                            for (int i = 0; i < rowsCompleted.Count; i++) {
-                                Console.WriteLine(rowsCompleted[i].ToString());
-                            }
-                            break;
+                            // Console.WriteLine("Updated a row!");
+                            // for (int i = 0; i < rowsCompleted.Count; i++) {
+                            //     Console.WriteLine(rowsCompleted[i].ToString());
+                            // }
                         }
                         listener = client.ReceiveAsync();
+                        break;
+                    case 1:
+                        // Console.WriteLine("delay");
+                        timeout = Task.Delay(500);
                         break;
                     default:
                         break;
@@ -81,22 +89,28 @@ namespace Client {
                 // ****** we should just be sending one and waiting for a response
                 // ****** to avoid overloading servers. We could not enqueue a server again
                 // ****** until we have gotten a response from the server.
+
                 if (currentRow < rowsCompleted.Count - 1) {
-                    Console.WriteLine("increased current row");
+                    // Console.WriteLine("increased current row");
                     currentRow++;
                 } else {
-                    Console.WriteLine("reset current row");
+                    // Console.WriteLine("reset current row");
                     currentRow = 0;
                 }
                 if (availableMachines.Count > 0) {//Sending a raytracing request based on which machines are available
+                    // Console.WriteLine("availableMachines.Count > 0");
                     if (rowsCompleted.Count > 0) {
-                        traceRequest = PackLineRequest(rowsCompleted[currentRow]);
+                        // Console.WriteLine("rowsCompleted.Count > 0");
+                        traceRequest = PackLineRequest(rowsCompleted[currentRow]); // Send request for a row of picture
+                        // Console.WriteLine("Current row: " + rowsCompleted[currentRow].ToString());
                         queueIP = availableMachines.Dequeue();
                         availableMachines.Enqueue(queueIP);
+                        // Console.WriteLine(availableMachines.Peek().ToString());
                         // Console.WriteLine("Sending a pixel request");
                         client.Send(traceRequest, traceRequest.Length, queueIP);
-
+                        // Console.WriteLine("Made it past the send");
                     } else {
+                        // Console.WriteLine("notFinished = false");
                         notFinished = false;
                     }
                 }
@@ -134,13 +148,13 @@ namespace Client {
         static int UpdateBitMap(byte[] update, byte[,,] bitmapToEdit, int width) {
             var byteSpan = new Span<byte>(update);
             var Y = BinaryPrimitives.ReadInt32BigEndian(byteSpan.Slice(0, 4));
-            // Console.WriteLine("Updating some pixel");
+            // Console.WriteLine("UpdateBitMap: " + Y.ToString());
             for(int X = 0; X < width; X++){
                 bitmapToEdit[X,Y,0] = update[4 + X * 3];
                 bitmapToEdit[X,Y,1] = update[5 + X * 3];
                 bitmapToEdit[X,Y,2] = update[6 + X * 3];
             }
-            Console.WriteLine("Updating Row " + Y.ToString());
+            // Console.WriteLine("Updating Row " + Y.ToString());
             return Y;
         }
 

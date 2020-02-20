@@ -96,7 +96,6 @@ namespace RayTracer {
             /* instead of using Render here, which does the entire scene at once, our server will 
                do one pixel at a time, since that is what it is going to be sending back to the
                client */
-            Console.WriteLine(y.ToString());
             byte[] returnBytes = new byte[4 + screenWidth * 3];
             
             for(int x = 0; x < screenWidth; x++) {
