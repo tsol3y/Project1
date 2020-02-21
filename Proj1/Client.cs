@@ -19,18 +19,23 @@ namespace Client {
             }
             
             byte[,,] bitmap = new byte[width, height, 3];
+            IPEndPoint[] serverArray = ReadServerList("SERVER_LIST");
 
             Queue<IPEndPoint> availableMachines = new Queue<IPEndPoint>();
             byte[][] sceneArray = GenerateSceneArray(args[0], width, height);
             UTF8Encoding utf8 = new UTF8Encoding();
             UdpClient client = new UdpClient(3333); //there were specific instructions about what port to use
-            
+            UdpClient sender = new UdpClient(); //there were specific instructions about what port to use
 
             // NEED TO READ SERVER LIST HERE!!!!!(@#(%*^@#(*%)))
-            IPEndPoint ip = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 3334);
+            IPEndPoint testip = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 3334);
 
             for (int i = 0; i < sceneArray.Length; i++) {
-                client.Send(sceneArray[i], sceneArray[i].Length, ip);
+                // foreach (IPEndPoint ip in serverArray) {
+                //     Console.WriteLine(sceneArray[i]);
+                //     sender.Send(sceneArray[i], sceneArray[i].Length, ip);
+                // }
+                sender.Send(sceneArray[i], sceneArray[i].Length, testip);
             }
 
             var listener = client.ReceiveAsync();
@@ -51,7 +56,7 @@ namespace Client {
 
                         if (packetLength == 4) {
                             var missingLine = UnpackMissingLine(bufferedResponse);
-                            client.Send(sceneArray[missingLine], sceneArray[missingLine].Length, ip);
+                            sender.Send(sceneArray[missingLine], sceneArray[missingLine].Length, incomingIP);
                         } else if (packetLength == 0) { // Confirmation
                             if (!availableMachines.Contains(incomingIP)) {
                                 availableMachines.Enqueue(incomingIP);
@@ -79,7 +84,7 @@ namespace Client {
                         traceRequest = PackLineRequest(rowsCompleted[currentRow]);
                         queueIP = availableMachines.Dequeue();
                         availableMachines.Enqueue(queueIP);
-                        client.Send(traceRequest, traceRequest.Length, queueIP);
+                        sender.Send(traceRequest, traceRequest.Length, queueIP);
                     } else {
                         notFinished = false;
                     }
@@ -154,6 +159,21 @@ namespace Client {
                 encodedArray[i] = utf8.GetBytes((String.Format("{0}~{1}~{2}~{3}~{4}", stringList[i][1], stringList[i][0], stringList[i][2], stringList[i][3], stringList[i][4])));
             }
             return encodedArray;
+        }
+
+        public static IPEndPoint[] ReadServerList(String filename) {
+            StreamReader file = new StreamReader(@filename);
+            List<IPEndPoint> serverList = new List<IPEndPoint>();
+            IPHostEntry nonEndPointIP;
+            String line;
+            while((line = file.ReadLine()) != null) {
+                nonEndPointIP = Dns.GetHostEntry(line);
+                serverList.Add(new IPEndPoint(nonEndPointIP.AddressList[0], 3334));
+            }
+            foreach(IPEndPoint ip in serverList) {
+                Console.WriteLine(ip.ToString());
+            }
+            return serverList.ToArray();
         }
     }
 }
