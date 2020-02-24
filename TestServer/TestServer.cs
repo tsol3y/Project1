@@ -17,7 +17,6 @@ namespace TestServer
         {
             var utf8 = new UTF8Encoding();
             UdpClient server = new UdpClient(3334);
-            UdpClient sender = new UdpClient();
             bool notReceivedFirstPacket = true;
             var listener = server.ReceiveAsync();
             byte[] initialLine = new byte[0];
@@ -69,7 +68,7 @@ namespace TestServer
                                                       .Select(o => o.i);
                         foreach (var index in missingIndices) {
                             var missingLine = PackMissingLine(index);
-                            sender.Send(missingLine, missingLine.Length, clientIP);
+                            server.Send(missingLine, missingLine.Length, clientIP);
         
                         }
                         timeout = Task.Delay(500);
@@ -83,7 +82,7 @@ namespace TestServer
             var tracerScene = RayTracer.RayTracer.ReadScene(args[0]).Item2;
             RayTracer.RayTracer rayTracer = new RayTracer.RayTracer(width, height);
             
-            sender.Send(new byte[0], 0, clientIP); // Confirmation
+            server.Send(new byte[0], 0, clientIP); // Confirmation
             
             while (true) {
                 var action = Task.WaitAny(listener);
@@ -95,7 +94,7 @@ namespace TestServer
                         if (packetLength == 4) { // ensure this is a request
                             var y = UnpackLineRequest(bufferedRequest);
                             var returnTrace = rayTracer.Render(tracerScene, y);
-                            sender.Send(returnTrace, returnTrace.Length, clientIP);
+                            server.Send(returnTrace, returnTrace.Length, clientIP);
                         }
                         listener = server.ReceiveAsync();
                         break;
