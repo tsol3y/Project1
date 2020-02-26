@@ -191,13 +191,13 @@ namespace RayTracer {
             return (vs[0],vs[1]);
         }
 
-        internal static ((int,int), Scene) ReadScene(String fileName)
+        internal static ((int,int), Scene) ReadScene(String[] sceneArray)
         {
             var os = new List<SceneObject>();
             var ls = new List<Light>();
             var c = Camera.Create(Vector.Make(3,2,4), Vector.Make(-1,0.5,0));
             var v = (600,600);
-            foreach (var l in File.ReadAllLines(fileName))
+            foreach (var l in sceneArray)
             {
                 var ts = l.Split(' ', '\t');
                 if (ts.Length <= 0) continue;

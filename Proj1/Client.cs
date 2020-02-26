@@ -88,6 +88,9 @@ namespace Client {
                     }
                 }
             }
+            foreach(IPEndPoint ip in serverArray){
+                client.Send(new byte[0], 0, ip);//tell servers that job is finished
+            }
             WritePPM(args[1], bitmap);
         }
         public static byte[] PackLineRequest(int row) {

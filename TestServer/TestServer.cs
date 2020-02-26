@@ -57,7 +57,6 @@ namespace TestServer
                         sceneFile[Int32.Parse(decodedLine[0]) - 1] = decodedLine[2];
 
                         if (sceneFile.Count(l => l == null) == 0) {
-                            File.WriteAllLines(@args[0], sceneFile);
                             sceneNotComplete = false;
                         }
                         listener = server.ReceiveAsync();
@@ -79,12 +78,14 @@ namespace TestServer
             }
             
             listener = server.ReceiveAsync();
-            var tracerScene = RayTracer.RayTracer.ReadScene(args[0]).Item2;
+            var tracerScene = RayTracer.RayTracer.ReadScene(sceneFile);
             RayTracer.RayTracer rayTracer = new RayTracer.RayTracer(width, height);
             
             server.Send(new byte[0], 0, clientIP); // Confirmation
             
-            while (true) {
+            var jobNotComplete = true;
+
+            while (jobNotComplete) {
                 var action = Task.WaitAny(listener);
                 switch(action) {
                     case 0:
@@ -93,8 +94,10 @@ namespace TestServer
                         var packetLength = bufferedRequest.Length;
                         if (packetLength == 4) { // ensure this is a request
                             var y = UnpackLineRequest(bufferedRequest);
-                            var returnTrace = rayTracer.Render(tracerScene, y);
+                            var returnTrace = rayTracer.Render(tracerScene.Item2, y);
                             server.Send(returnTrace, returnTrace.Length, clientIP);
+                        } else if (packetLength == 0) {//confirmation from client that job is finished
+                            jobNotComplete = false;
                         }
                         listener = server.ReceiveAsync();
                         break;
